@@ -164,7 +164,7 @@ function createEllipticWireFrame(radius: number, height: number, vertexBegin: nu
         const globalIndex = i + vertexBegin;
         switch (axis) {
             case 0:
-                positions[globalIndex] = new Vector3(0, radius * Math.cos(thetaDelta) + height / 2, radius * Math.sin(thetaDelta));
+                positions[globalIndex] = new Vector3(0, radius * Math.sin(thetaDelta) + height / 2, radius * Math.cos(thetaDelta));
                 break;
             case 1:
                 positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), height / 2, radius * Math.sin(thetaDelta));
@@ -185,7 +185,7 @@ function createEllipticWireFrame(radius: number, height: number, vertexBegin: nu
         const globalIndex = i + vertexBegin;
         switch (axis) {
             case 0:
-                positions[globalIndex] = new Vector3(0, radius * Math.cos(thetaDelta) - height / 2, radius * Math.sin(thetaDelta));
+                positions[globalIndex] = new Vector3(0, radius * Math.sin(thetaDelta) - height / 2, radius * Math.cos(thetaDelta));
                 break;
             case 1:
                 positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), -height / 2, radius * Math.sin(thetaDelta));
