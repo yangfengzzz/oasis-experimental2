@@ -157,7 +157,7 @@ export function createSphereWireFrame(engine: Engine,
 function createEllipticWireFrame(radius: number, height: number, vertexBegin: number, vertexCount: number,
                                  axis: number, positions: Vector3[], indices: Uint16Array) {
     const countReciprocal = 1.0 / vertexCount;
-    for (let i = 0; i < vertexCount / 2; ++i) {
+    for (let i = 0; i < vertexCount; ++i) {
         const v = i * countReciprocal;
         const thetaDelta = v * Math.PI * 2;
 
@@ -174,25 +174,8 @@ function createEllipticWireFrame(radius: number, height: number, vertexBegin: nu
                 break;
         }
 
-        indices[2 * globalIndex] = globalIndex;
-        indices[2 * globalIndex + 1] = globalIndex + 1;
-    }
-
-    for (let i = vertexCount / 2; i < vertexCount; ++i) {
-        const v = i * countReciprocal;
-        const thetaDelta = v * Math.PI * 2;
-
-        const globalIndex = i + vertexBegin;
-        switch (axis) {
-            case 0:
-                positions[globalIndex] = new Vector3(0, radius * Math.sin(thetaDelta) - height / 2, radius * Math.cos(thetaDelta));
-                break;
-            case 1:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), -height / 2, radius * Math.sin(thetaDelta));
-                break;
-            case 2:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta) - height / 2, 0);
-                break;
+        if (i == vertexCount / 2) {
+            height = -height;
         }
 
         if (i < vertexCount - 1) {
