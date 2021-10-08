@@ -176,6 +176,60 @@ export function createSphereWireFrame(engine: Engine,
     return mesh;
 }
 
+export function createCapsuleWireFrame(engine: Engine,
+                                       radius: number = 0.5,
+                                       height: number = 2,): ModelMesh {
+    const mesh = new ModelMesh(engine);
+
+    const segments = 120;
+    const vertexCount = segments + 1;
+    const thetaRange = Math.PI * 2;
+    const countReciprocal = 2.0 / segments;
+
+    const positions: Vector3[] = new Array(vertexCount * 2);
+    const indices = new Uint16Array(segments * 4);
+    // Y-Top
+    let begin = 0;
+    for (let i = 0; i < vertexCount; ++i) {
+        const v = i * countReciprocal;
+        const thetaDelta = v * thetaRange;
+
+        positions[i] = new Vector3(radius * Math.cos(thetaDelta), height / 2.0, radius * Math.sin(thetaDelta));
+
+        if (i < vertexCount - 1) {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = i + 1;
+        } else {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = begin;
+        }
+    }
+
+    // Y-Bottom
+    begin = vertexCount;
+    for (let i = vertexCount; i < vertexCount * 2; ++i) {
+        const v = i * countReciprocal;
+        const thetaDelta = v * thetaRange;
+
+        positions[i] = new Vector3(radius * Math.cos(thetaDelta), -height / 2.0, radius * Math.sin(thetaDelta));
+
+        if (i < 2 * vertexCount - 1) {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = i + 1;
+        } else {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = begin;
+        }
+    }
+
+    mesh.setPositions(positions);
+    mesh.setIndices(indices);
+
+    mesh.uploadData(true);
+    mesh.addSubMesh(0, indices.length, MeshTopology.Lines);
+    return mesh;
+}
+
 export function createOasis() {
     const engine = new WebGLEngine("canvas");
     engine.canvas.resizeByClientSize();
@@ -216,23 +270,37 @@ export function createOasis() {
     // }
 
     // init sphere
+    // {
+    //     const sphereEntity = rootEntity.createChild("sphere");
+    //     const renderer = sphereEntity.addComponent(MeshRenderer);
+    //     const mtl = new BlinnPhongMaterial(engine);
+    //     const color = mtl.baseColor;
+    //     color.r = 0.0;
+    //     color.g = 0.8;
+    //     color.b = 0.5;
+    //     color.a = 1.0;
+    //     renderer.mesh = PrimitiveMesh.createSphere(engine);
+    //     renderer.setMaterial(mtl);
+    //
+    //     //init cube collider
+    //     const sphereColliderEntity = sphereEntity.createChild("sphereCollider");
+    //     const colliderRenderer = sphereColliderEntity.addComponent(MeshRenderer);
+    //     colliderRenderer.mesh = createSphereWireFrame(engine, 2);
+    //     colliderRenderer.setMaterial(mtl);
+    // }
+
+    // init capsule
     {
-        const sphereEntity = rootEntity.createChild("sphere");
-        const renderer = sphereEntity.addComponent(MeshRenderer);
+        const capsuleColliderEntity = rootEntity.createChild("capsuleCollider");
+        const renderer = capsuleColliderEntity.addComponent(MeshRenderer);
         const mtl = new BlinnPhongMaterial(engine);
         const color = mtl.baseColor;
         color.r = 0.0;
         color.g = 0.8;
         color.b = 0.5;
         color.a = 1.0;
-        renderer.mesh = PrimitiveMesh.createSphere(engine);
+        renderer.mesh = createCapsuleWireFrame(engine, 2, 6);
         renderer.setMaterial(mtl);
-
-        //init cube collider
-        const sphereColliderEntity = sphereEntity.createChild("sphereCollider");
-        const colliderRenderer = sphereColliderEntity.addComponent(MeshRenderer);
-        colliderRenderer.mesh = createSphereWireFrame(engine, 2);
-        colliderRenderer.setMaterial(mtl);
     }
 
     engine.run();
