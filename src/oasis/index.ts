@@ -98,69 +98,53 @@ export function createCuboidWireFrame(engine: Engine,
     return mesh;
 }
 
+function createCircleWireFrame(radius: number, thetaRange: number, vertexBegin: number, vertexCount: number,
+                               axis: number, positions: Vector3[], indices: Uint16Array) {
+    const countReciprocal = 1.0 / vertexCount;
+    for (let i = 0; i < vertexCount; ++i) {
+        const v = i * countReciprocal;
+        const thetaDelta = v * thetaRange;
+
+        const globalIndex = i + vertexBegin;
+        switch (axis) {
+            case 0:
+                positions[globalIndex] = new Vector3(0, radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta));
+                break;
+            case 1:
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), 0, radius * Math.sin(thetaDelta));
+                break;
+            case 2:
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta), 0);
+                break;
+        }
+
+        if (i < vertexCount - 1) {
+            indices[2 * globalIndex] = globalIndex;
+            indices[2 * globalIndex + 1] = globalIndex + 1;
+        } else {
+            indices[2 * globalIndex] = globalIndex;
+            indices[2 * globalIndex + 1] = vertexBegin;
+        }
+    }
+}
+
 export function createSphereWireFrame(engine: Engine,
                                       radius: number = 0.5): ModelMesh {
     const mesh = new ModelMesh(engine);
 
     const vertexCount = 40;
     const thetaRange = Math.PI * 2;
-    const countReciprocal = 1.0 / vertexCount;
 
     const positions: Vector3[] = new Array(vertexCount * 3);
     const indices = new Uint16Array(vertexCount * 6);
     // X
-    let begin = 0;
-    for (let i = 0; i < vertexCount; ++i) {
-        const v = i * countReciprocal;
-        const thetaDelta = v * thetaRange;
-
-        const globalIndex = i + begin;
-        positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), 0, radius * Math.sin(thetaDelta));
-
-        if (i < vertexCount - 1) {
-            indices[2 * globalIndex] = globalIndex;
-            indices[2 * globalIndex + 1] = globalIndex + 1;
-        } else {
-            indices[2 * globalIndex] = globalIndex;
-            indices[2 * globalIndex + 1] = begin;
-        }
-    }
+    createCircleWireFrame(radius, thetaRange, 0, vertexCount, 0, positions, indices);
 
     // Y
-    begin = vertexCount;
-    for (let i = 0; i < vertexCount; ++i) {
-        const v = i * countReciprocal;
-        const thetaDelta = v * thetaRange;
-
-        const globalIndex = i + begin;
-        positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta), 0);
-
-        if (i < vertexCount - 1) {
-            indices[2 * globalIndex] = globalIndex;
-            indices[2 * globalIndex + 1] = globalIndex + 1;
-        } else {
-            indices[2 * globalIndex] = globalIndex;
-            indices[2 * globalIndex + 1] = begin;
-        }
-    }
+    createCircleWireFrame(radius, thetaRange, vertexCount, vertexCount, 1, positions, indices);
 
     // Z
-    begin = 2 * vertexCount;
-    for (let i = 0; i < vertexCount; ++i) {
-        const v = i * countReciprocal;
-        const thetaDelta = v * thetaRange;
-
-        const globalIndex = i + begin;
-        positions[globalIndex] = new Vector3(0, radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta));
-
-        if (i < vertexCount - 1) {
-            indices[2 * globalIndex] = globalIndex;
-            indices[2 * globalIndex + 1] = globalIndex + 1;
-        } else {
-            indices[2 * globalIndex] = globalIndex;
-            indices[2 * globalIndex + 1] = begin;
-        }
-    }
+    createCircleWireFrame(radius, thetaRange, 2 * vertexCount, vertexCount, 2, positions, indices);
 
     mesh.setPositions(positions);
     mesh.setIndices(indices);
