@@ -99,7 +99,7 @@ export function createCuboidWireFrame(engine: Engine,
 }
 
 function createCircleWireFrame(radius: number, thetaRange: number, vertexBegin: number, vertexCount: number,
-                               axis: number, positions: Vector3[], indices: Uint16Array) {
+                               axis: number, shift: Vector3, positions: Vector3[], indices: Uint16Array) {
     const countReciprocal = 1.0 / vertexCount;
     for (let i = 0; i < vertexCount; ++i) {
         const v = i * countReciprocal;
@@ -108,13 +108,13 @@ function createCircleWireFrame(radius: number, thetaRange: number, vertexBegin: 
         const globalIndex = i + vertexBegin;
         switch (axis) {
             case 0:
-                positions[globalIndex] = new Vector3(0, radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta));
+                positions[globalIndex] = new Vector3(shift.x, radius * Math.cos(thetaDelta) + shift.y, radius * Math.sin(thetaDelta) + shift.z);
                 break;
             case 1:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), 0, radius * Math.sin(thetaDelta));
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta) + shift.x, shift.y, radius * Math.sin(thetaDelta) + shift.z);
                 break;
             case 2:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta), 0);
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta) + shift.x, radius * Math.sin(thetaDelta) + shift.y, shift.z);
                 break;
         }
 
@@ -134,17 +134,18 @@ export function createSphereWireFrame(engine: Engine,
 
     const vertexCount = 40;
     const thetaRange = Math.PI * 2;
+    const shift = new Vector3();
 
     const positions: Vector3[] = new Array(vertexCount * 3);
     const indices = new Uint16Array(vertexCount * 6);
     // X
-    createCircleWireFrame(radius, thetaRange, 0, vertexCount, 0, positions, indices);
+    createCircleWireFrame(radius, thetaRange, 0, vertexCount, 0, shift, positions, indices);
 
     // Y
-    createCircleWireFrame(radius, thetaRange, vertexCount, vertexCount, 1, positions, indices);
+    createCircleWireFrame(radius, thetaRange, vertexCount, vertexCount, 1, shift, positions, indices);
 
     // Z
-    createCircleWireFrame(radius, thetaRange, 2 * vertexCount, vertexCount, 2, positions, indices);
+    createCircleWireFrame(radius, thetaRange, 2 * vertexCount, vertexCount, 2, shift, positions, indices);
 
     mesh.setPositions(positions);
     mesh.setIndices(indices);
@@ -159,63 +160,21 @@ export function createCapsuleWireFrame(engine: Engine,
                                        height: number = 2,): ModelMesh {
     const mesh = new ModelMesh(engine);
 
-    const segments = 120;
-    const vertexCount = segments + 1;
-    const thetaRange = Math.PI * 2;
-    const countReciprocal = 2.0 / segments;
+    const vertexCount = 40;
+    const shift = new Vector3();
 
     const positions: Vector3[] = new Array(vertexCount * 2);
-    const indices = new Uint16Array(segments * 4);
+    const indices = new Uint16Array(vertexCount * 4);
+
     // Y-Top
-    let begin = 0;
-    for (let i = 0; i < vertexCount; ++i) {
-        const v = i * countReciprocal;
-        const thetaDelta = v * thetaRange;
-
-        positions[i] = new Vector3(radius * Math.cos(thetaDelta), height / 2.0, radius * Math.sin(thetaDelta));
-
-        if (i < vertexCount - 1) {
-            indices[2 * i] = i;
-            indices[2 * i + 1] = i + 1;
-        } else {
-            indices[2 * i] = i;
-            indices[2 * i + 1] = begin;
-        }
-    }
+    shift.y = height / 2.0;
+    createCircleWireFrame(radius, Math.PI * 2, 0, vertexCount, 1, shift, positions, indices);
 
     // Y-Bottom
-    begin = vertexCount;
-    for (let i = vertexCount; i < vertexCount * 2; ++i) {
-        const v = i * countReciprocal;
-        const thetaDelta = v * thetaRange;
-
-        positions[i] = new Vector3(radius * Math.cos(thetaDelta), -height / 2.0, radius * Math.sin(thetaDelta));
-
-        if (i < 2 * vertexCount - 1) {
-            indices[2 * i] = i;
-            indices[2 * i + 1] = i + 1;
-        } else {
-            indices[2 * i] = i;
-            indices[2 * i + 1] = begin;
-        }
-    }
+    shift.y = -height / 2.0;
+    createCircleWireFrame(radius, Math.PI * 2, vertexCount, vertexCount, 1, shift, positions, indices);
 
     // X-Elliptic
-    begin = 2 * vertexCount;
-    for (let i = 0; i < vertexCount / 2; ++i) {
-        const v = i * countReciprocal;
-        const thetaDelta = v * thetaRange;
-
-        positions[i] = new Vector3(radius * Math.cos(thetaDelta), -height / 2.0, radius * Math.sin(thetaDelta));
-
-        if (i < 2 * vertexCount - 1) {
-            indices[2 * i] = i;
-            indices[2 * i + 1] = i + 1;
-        } else {
-            indices[2 * i] = i;
-            indices[2 * i + 1] = begin;
-        }
-    }
 
     mesh.setPositions(positions);
     mesh.setIndices(indices);
@@ -265,38 +224,38 @@ export function createOasis() {
     // }
 
     // init sphere
-    {
-        const sphereEntity = rootEntity.createChild("sphere");
-        const renderer = sphereEntity.addComponent(MeshRenderer);
-        const mtl = new BlinnPhongMaterial(engine);
-        const color = mtl.baseColor;
-        color.r = 0.0;
-        color.g = 0.8;
-        color.b = 0.5;
-        color.a = 1.0;
-        renderer.mesh = PrimitiveMesh.createSphere(engine);
-        renderer.setMaterial(mtl);
-
-        //init cube collider
-        const sphereColliderEntity = sphereEntity.createChild("sphereCollider");
-        const colliderRenderer = sphereColliderEntity.addComponent(MeshRenderer);
-        colliderRenderer.mesh = createSphereWireFrame(engine, 2);
-        colliderRenderer.setMaterial(mtl);
-    }
-
-    // // init capsule
     // {
-    //     const capsuleColliderEntity = rootEntity.createChild("capsuleCollider");
-    //     const renderer = capsuleColliderEntity.addComponent(MeshRenderer);
+    //     const sphereEntity = rootEntity.createChild("sphere");
+    //     const renderer = sphereEntity.addComponent(MeshRenderer);
     //     const mtl = new BlinnPhongMaterial(engine);
     //     const color = mtl.baseColor;
     //     color.r = 0.0;
     //     color.g = 0.8;
     //     color.b = 0.5;
     //     color.a = 1.0;
-    //     renderer.mesh = createCapsuleWireFrame(engine, 2, 6);
+    //     renderer.mesh = PrimitiveMesh.createSphere(engine);
     //     renderer.setMaterial(mtl);
+    //
+    //     //init cube collider
+    //     const sphereColliderEntity = sphereEntity.createChild("sphereCollider");
+    //     const colliderRenderer = sphereColliderEntity.addComponent(MeshRenderer);
+    //     colliderRenderer.mesh = createSphereWireFrame(engine, 2);
+    //     colliderRenderer.setMaterial(mtl);
     // }
+
+    // init capsule
+    {
+        const capsuleColliderEntity = rootEntity.createChild("capsuleCollider");
+        const renderer = capsuleColliderEntity.addComponent(MeshRenderer);
+        const mtl = new BlinnPhongMaterial(engine);
+        const color = mtl.baseColor;
+        color.r = 0.0;
+        color.g = 0.8;
+        color.b = 0.5;
+        color.a = 1.0;
+        renderer.mesh = createCapsuleWireFrame(engine, 2, 6);
+        renderer.setMaterial(mtl);
+    }
 
     engine.run();
 }
