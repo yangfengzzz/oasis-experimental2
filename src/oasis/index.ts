@@ -98,6 +98,84 @@ export function createCuboidWireFrame(engine: Engine,
     return mesh;
 }
 
+export function createSphereWireFrame(engine: Engine,
+                                      radius: number = 0.5): ModelMesh {
+    const mesh = new ModelMesh(engine);
+
+    const segments = 120;
+    const vertexCount = segments + 1;
+    const thetaRange = Math.PI * 2;
+    const countReciprocal = 3.0 / segments;
+
+    const positions: Vector3[] = new Array(vertexCount * 3);
+    const indices = new Uint16Array(segments * 6);
+    // X
+    let begin = 0;
+    for (let i = 0; i < vertexCount; ++i) {
+        const v = i * countReciprocal;
+        const thetaDelta = v * thetaRange;
+
+        positions[i] = new Vector3(radius * Math.cos(thetaDelta), 0, radius * Math.sin(thetaDelta));
+
+        if (i < vertexCount - 1) {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = i + 1;
+        } else {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = begin;
+        }
+    }
+
+    // Y
+    begin = vertexCount;
+    for (let i = vertexCount; i < vertexCount * 2; ++i) {
+        const v = i * countReciprocal;
+        const thetaDelta = v * thetaRange;
+
+        let posX = radius * Math.cos(thetaDelta);
+        let posY = radius * Math.sin(thetaDelta);
+        let posZ = 0;
+
+        positions[i] = new Vector3(posX, posY, posZ);
+
+        if (i < 2 * vertexCount - 1) {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = i + 1;
+        } else {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = begin;
+        }
+    }
+
+    // Z
+    begin = 2 * vertexCount;
+    for (let i = 2 * vertexCount; i < 3 * vertexCount; ++i) {
+        const v = i * countReciprocal;
+        const thetaDelta = v * thetaRange;
+
+        let posX = 0;
+        let posY = radius * Math.cos(thetaDelta);
+        let posZ = radius * Math.sin(thetaDelta);
+
+        positions[i] = new Vector3(posX, posY, posZ);
+
+        if (i < 3 * vertexCount - 1) {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = i + 1;
+        } else {
+            indices[2 * i] = i;
+            indices[2 * i + 1] = begin;
+        }
+    }
+
+    mesh.setPositions(positions);
+    mesh.setIndices(indices);
+
+    mesh.uploadData(true);
+    mesh.addSubMesh(0, indices.length, MeshTopology.Lines);
+    return mesh;
+}
+
 export function createOasis() {
     const engine = new WebGLEngine("canvas");
     engine.canvas.resizeByClientSize();
@@ -118,22 +196,44 @@ export function createOasis() {
     scene.ambientLight.diffuseIntensity = 1.2;
 
     // init cube
-    const cubeEntity = rootEntity.createChild("cube");
-    const renderer = cubeEntity.addComponent(MeshRenderer);
-    const mtl = new BlinnPhongMaterial(engine);
-    const color = mtl.baseColor;
-    color.r = 0.0;
-    color.g = 0.8;
-    color.b = 0.5;
-    color.a = 1.0;
-    renderer.mesh = PrimitiveMesh.createCuboid(engine);
-    renderer.setMaterial(mtl);
+    // {
+    //     const cubeEntity = rootEntity.createChild("cube");
+    //     const renderer = cubeEntity.addComponent(MeshRenderer);
+    //     const mtl = new BlinnPhongMaterial(engine);
+    //     const color = mtl.baseColor;
+    //     color.r = 0.0;
+    //     color.g = 0.8;
+    //     color.b = 0.5;
+    //     color.a = 1.0;
+    //     renderer.mesh = PrimitiveMesh.createCuboid(engine);
+    //     renderer.setMaterial(mtl);
+    //
+    //     //init cube collider
+    //     const cubeColliderEntity = cubeEntity.createChild("cubeCollider");
+    //     const colliderRenderer = cubeColliderEntity.addComponent(MeshRenderer);
+    //     colliderRenderer.mesh = createCuboidWireFrame(engine, 2, 2, 2);
+    //     colliderRenderer.setMaterial(mtl);
+    // }
 
-    //init cube collider
-    const cubeColliderEntity = cubeEntity.createChild("cubeCollider");
-    const colliderRenderer = cubeColliderEntity.addComponent(MeshRenderer);
-    colliderRenderer.mesh = createCuboidWireFrame(engine, 2, 2, 2);
-    colliderRenderer.setMaterial(mtl);
+    // init sphere
+    {
+        const sphereEntity = rootEntity.createChild("sphere");
+        const renderer = sphereEntity.addComponent(MeshRenderer);
+        const mtl = new BlinnPhongMaterial(engine);
+        const color = mtl.baseColor;
+        color.r = 0.0;
+        color.g = 0.8;
+        color.b = 0.5;
+        color.a = 1.0;
+        renderer.mesh = PrimitiveMesh.createSphere(engine);
+        renderer.setMaterial(mtl);
+
+        //init cube collider
+        const sphereColliderEntity = sphereEntity.createChild("sphereCollider");
+        const colliderRenderer = sphereColliderEntity.addComponent(MeshRenderer);
+        colliderRenderer.mesh = createSphereWireFrame(engine, 2);
+        colliderRenderer.setMaterial(mtl);
+    }
 
     engine.run();
 }
