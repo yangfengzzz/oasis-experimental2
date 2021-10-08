@@ -102,13 +102,12 @@ export function createSphereWireFrame(engine: Engine,
                                       radius: number = 0.5): ModelMesh {
     const mesh = new ModelMesh(engine);
 
-    const segments = 40;
-    const vertexCount = segments + 1;
+    const vertexCount = 40;
     const thetaRange = Math.PI * 2;
-    const countReciprocal = 1.0 / segments;
+    const countReciprocal = 1.0 / vertexCount;
 
     const positions: Vector3[] = new Array(vertexCount * 3);
-    const indices = new Uint16Array(segments * 6);
+    const indices = new Uint16Array(vertexCount * 6);
     // X
     let begin = 0;
     for (let i = 0; i < vertexCount; ++i) {
