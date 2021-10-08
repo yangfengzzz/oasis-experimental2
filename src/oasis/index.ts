@@ -170,7 +170,7 @@ function createEllipticWireFrame(radius: number, height: number, vertexBegin: nu
                 positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), height, radius * Math.sin(thetaDelta));
                 break;
             case 2:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta) + height , 0);
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta) + height, 0);
                 break;
         }
 
@@ -240,59 +240,50 @@ export function createOasis() {
     scene.ambientLight.diffuseSolidColor.setValue(1, 1, 1, 1);
     scene.ambientLight.diffuseIntensity = 1.2;
 
+    const mtl = new BlinnPhongMaterial(engine);
+    const color = mtl.baseColor;
+    color.r = 0.0;
+    color.g = 0.8;
+    color.b = 0.5;
+    color.a = 1.0;
+
     // init cube
-    // {
-    //     const cubeEntity = rootEntity.createChild("cube");
-    //     const renderer = cubeEntity.addComponent(MeshRenderer);
-    //     const mtl = new BlinnPhongMaterial(engine);
-    //     const color = mtl.baseColor;
-    //     color.r = 0.0;
-    //     color.g = 0.8;
-    //     color.b = 0.5;
-    //     color.a = 1.0;
-    //     renderer.mesh = PrimitiveMesh.createCuboid(engine);
-    //     renderer.setMaterial(mtl);
-    //
-    //     //init cube collider
-    //     const cubeColliderEntity = cubeEntity.createChild("cubeCollider");
-    //     const colliderRenderer = cubeColliderEntity.addComponent(MeshRenderer);
-    //     colliderRenderer.mesh = createCuboidWireFrame(engine, 2, 2, 2);
-    //     colliderRenderer.setMaterial(mtl);
-    // }
+    const cubeEntity = rootEntity.createChild("cube");
+    cubeEntity.transform.setPosition(4, 0, 0);
+    const cubeRenderer = cubeEntity.addComponent(MeshRenderer);
+    cubeRenderer.mesh = PrimitiveMesh.createCuboid(engine);
+    cubeRenderer.setMaterial(mtl);
+
+    //init cube collider
+    const cubeColliderEntity = cubeEntity.createChild("cubeCollider");
+    const cubeColliderRenderer = cubeColliderEntity.addComponent(MeshRenderer);
+    cubeColliderRenderer.mesh = createCuboidWireFrame(engine, 2, 2, 2);
+    cubeColliderRenderer.setMaterial(mtl);
 
     // init sphere
-    // {
-    //     const sphereEntity = rootEntity.createChild("sphere");
-    //     const renderer = sphereEntity.addComponent(MeshRenderer);
-    //     const mtl = new BlinnPhongMaterial(engine);
-    //     const color = mtl.baseColor;
-    //     color.r = 0.0;
-    //     color.g = 0.8;
-    //     color.b = 0.5;
-    //     color.a = 1.0;
-    //     renderer.mesh = PrimitiveMesh.createSphere(engine);
-    //     renderer.setMaterial(mtl);
-    //
-    //     //init cube collider
-    //     const sphereColliderEntity = sphereEntity.createChild("sphereCollider");
-    //     const colliderRenderer = sphereColliderEntity.addComponent(MeshRenderer);
-    //     colliderRenderer.mesh = createSphereWireFrame(engine, 2);
-    //     colliderRenderer.setMaterial(mtl);
-    // }
+    const sphereEntity = rootEntity.createChild("sphere");
+    const sphereRenderer = sphereEntity.addComponent(MeshRenderer);
+    sphereRenderer.mesh = PrimitiveMesh.createSphere(engine);
+    sphereRenderer.setMaterial(mtl);
+
+    //init cube collider
+    const sphereColliderEntity = sphereEntity.createChild("sphereCollider");
+    const sphereColliderRenderer = sphereColliderEntity.addComponent(MeshRenderer);
+    sphereColliderRenderer.mesh = createSphereWireFrame(engine, 2);
+    sphereColliderRenderer.setMaterial(mtl);
+
 
     // init capsule
-    {
-        const capsuleColliderEntity = rootEntity.createChild("capsuleCollider");
-        const renderer = capsuleColliderEntity.addComponent(MeshRenderer);
-        const mtl = new BlinnPhongMaterial(engine);
-        const color = mtl.baseColor;
-        color.r = 0.0;
-        color.g = 0.8;
-        color.b = 0.5;
-        color.a = 1.0;
-        renderer.mesh = createCapsuleWireFrame(engine);
-        renderer.setMaterial(mtl);
-    }
+    const capsuleEntity = rootEntity.createChild("capsule");
+    capsuleEntity.transform.setPosition(-4, 0, 0);
+    const capsuleRenderer = capsuleEntity.addComponent(MeshRenderer);
+    capsuleRenderer.mesh = PrimitiveMesh.createSphere(engine);
+    capsuleRenderer.setMaterial(mtl);
+
+    const capsuleColliderEntity = capsuleEntity.createChild("capsuleCollider");
+    const capsuleColliderRenderer = capsuleColliderEntity.addComponent(MeshRenderer);
+    capsuleColliderRenderer.mesh = createCapsuleWireFrame(engine, 1, 6);
+    capsuleColliderRenderer.setMaterial(mtl);
 
     engine.run();
 }
