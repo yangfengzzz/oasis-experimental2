@@ -164,13 +164,13 @@ function createEllipticWireFrame(radius: number, height: number, vertexBegin: nu
         const globalIndex = i + vertexBegin;
         switch (axis) {
             case 0:
-                positions[globalIndex] = new Vector3(0, radius * Math.sin(thetaDelta) + height / 2, radius * Math.cos(thetaDelta));
+                positions[globalIndex] = new Vector3(0, radius * Math.sin(thetaDelta) + height, radius * Math.cos(thetaDelta));
                 break;
             case 1:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), height / 2, radius * Math.sin(thetaDelta));
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), height, radius * Math.sin(thetaDelta));
                 break;
             case 2:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta) + height / 2, 0);
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta) + height , 0);
                 break;
         }
 
@@ -195,23 +195,23 @@ export function createCapsuleWireFrame(engine: Engine,
 
     const vertexCount = 40;
     const shift = new Vector3();
-
+    const halfHeight = height / 2 - radius;
     const positions: Vector3[] = new Array(vertexCount * 4);
     const indices = new Uint16Array(vertexCount * 8);
 
     // Y-Top
-    shift.y = height / 2.0;
+    shift.y = halfHeight;
     createCircleWireFrame(radius, 0, vertexCount, 1, shift, positions, indices);
 
     // Y-Bottom
-    shift.y = -height / 2.0;
+    shift.y = -halfHeight;
     createCircleWireFrame(radius, vertexCount, vertexCount, 1, shift, positions, indices);
 
     // X-Elliptic
-    createEllipticWireFrame(radius, height, vertexCount * 2, vertexCount, 2, positions, indices);
+    createEllipticWireFrame(radius, halfHeight, vertexCount * 2, vertexCount, 2, positions, indices);
 
     // Z-Elliptic
-    createEllipticWireFrame(radius, height, vertexCount * 3, vertexCount, 0, positions, indices);
+    createEllipticWireFrame(radius, halfHeight, vertexCount * 3, vertexCount, 0, positions, indices);
 
     mesh.setPositions(positions);
     mesh.setIndices(indices);
@@ -290,7 +290,7 @@ export function createOasis() {
         color.g = 0.8;
         color.b = 0.5;
         color.a = 1.0;
-        renderer.mesh = createCapsuleWireFrame(engine, 2, 6);
+        renderer.mesh = createCapsuleWireFrame(engine);
         renderer.setMaterial(mtl);
     }
 
