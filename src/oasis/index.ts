@@ -98,12 +98,12 @@ export function createCuboidWireFrame(engine: Engine,
     return mesh;
 }
 
-function createCircleWireFrame(radius: number, thetaRange: number, vertexBegin: number, vertexCount: number,
+function createCircleWireFrame(radius: number, vertexBegin: number, vertexCount: number,
                                axis: number, shift: Vector3, positions: Vector3[], indices: Uint16Array) {
     const countReciprocal = 1.0 / vertexCount;
     for (let i = 0; i < vertexCount; ++i) {
         const v = i * countReciprocal;
-        const thetaDelta = v * thetaRange;
+        const thetaDelta = v * Math.PI * 2;
 
         const globalIndex = i + vertexBegin;
         switch (axis) {
@@ -133,19 +133,18 @@ export function createSphereWireFrame(engine: Engine,
     const mesh = new ModelMesh(engine);
 
     const vertexCount = 40;
-    const thetaRange = Math.PI * 2;
     const shift = new Vector3();
 
     const positions: Vector3[] = new Array(vertexCount * 3);
     const indices = new Uint16Array(vertexCount * 6);
     // X
-    createCircleWireFrame(radius, thetaRange, 0, vertexCount, 0, shift, positions, indices);
+    createCircleWireFrame(radius, 0, vertexCount, 0, shift, positions, indices);
 
     // Y
-    createCircleWireFrame(radius, thetaRange, vertexCount, vertexCount, 1, shift, positions, indices);
+    createCircleWireFrame(radius, vertexCount, vertexCount, 1, shift, positions, indices);
 
     // Z
-    createCircleWireFrame(radius, thetaRange, 2 * vertexCount, vertexCount, 2, shift, positions, indices);
+    createCircleWireFrame(radius, 2 * vertexCount, vertexCount, 2, shift, positions, indices);
 
     mesh.setPositions(positions);
     mesh.setIndices(indices);
@@ -155,45 +154,23 @@ export function createSphereWireFrame(engine: Engine,
     return mesh;
 }
 
-export function createCapsuleWireFrame(engine: Engine,
-                                       radius: number = 0.5,
-                                       height: number = 2,): ModelMesh {
-    const mesh = new ModelMesh(engine);
-
-    const vertexCount = 40;
-    const thetaRange = Math.PI * 2;
-    const shift = new Vector3();
-
-    const positions: Vector3[] = new Array(vertexCount * 3);
-    const indices = new Uint16Array(vertexCount * 6);
-
-    // Y-Top
-    shift.y = height / 2.0;
-    createCircleWireFrame(radius, Math.PI * 2, 0, vertexCount, 1, shift, positions, indices);
-
-    // Y-Bottom
-    shift.y = -height / 2.0;
-    createCircleWireFrame(radius, Math.PI * 2, vertexCount, vertexCount, 1, shift, positions, indices);
-
-    // X-Elliptic
-    shift.y = height / 2;
-    let axis = 2
-    let vertexBegin = vertexCount * 2;
+function createEllipticWireFrame(radius: number, height: number, vertexBegin: number, vertexCount: number,
+                                 axis: number, positions: Vector3[], indices: Uint16Array) {
     const countReciprocal = 1.0 / vertexCount;
     for (let i = 0; i < vertexCount / 2; ++i) {
         const v = i * countReciprocal;
-        const thetaDelta = v * thetaRange;
+        const thetaDelta = v * Math.PI * 2;
 
         const globalIndex = i + vertexBegin;
         switch (axis) {
             case 0:
-                positions[globalIndex] = new Vector3(shift.x, radius * Math.cos(thetaDelta) + shift.y, radius * Math.sin(thetaDelta) + shift.z);
+                positions[globalIndex] = new Vector3(0, radius * Math.cos(thetaDelta) + height / 2, radius * Math.sin(thetaDelta));
                 break;
             case 1:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta) + shift.x, shift.y, radius * Math.sin(thetaDelta) + shift.z);
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), height / 2, radius * Math.sin(thetaDelta));
                 break;
             case 2:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta) + shift.x, radius * Math.sin(thetaDelta) + shift.y, shift.z);
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta) + height / 2, 0);
                 break;
         }
 
@@ -201,21 +178,20 @@ export function createCapsuleWireFrame(engine: Engine,
         indices[2 * globalIndex + 1] = globalIndex + 1;
     }
 
-    shift.y = -height / 2;
     for (let i = vertexCount / 2; i < vertexCount; ++i) {
         const v = i * countReciprocal;
-        const thetaDelta = v * thetaRange;
+        const thetaDelta = v * Math.PI * 2;
 
         const globalIndex = i + vertexBegin;
         switch (axis) {
             case 0:
-                positions[globalIndex] = new Vector3(shift.x, radius * Math.cos(thetaDelta) + shift.y, radius * Math.sin(thetaDelta) + shift.z);
+                positions[globalIndex] = new Vector3(0, radius * Math.cos(thetaDelta) - height / 2, radius * Math.sin(thetaDelta));
                 break;
             case 1:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta) + shift.x, shift.y, radius * Math.sin(thetaDelta) + shift.z);
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), -height / 2, radius * Math.sin(thetaDelta));
                 break;
             case 2:
-                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta) + shift.x, radius * Math.sin(thetaDelta) + shift.y, shift.z);
+                positions[globalIndex] = new Vector3(radius * Math.cos(thetaDelta), radius * Math.sin(thetaDelta) - height / 2, 0);
                 break;
         }
 
@@ -227,6 +203,32 @@ export function createCapsuleWireFrame(engine: Engine,
             indices[2 * globalIndex + 1] = vertexBegin;
         }
     }
+}
+
+export function createCapsuleWireFrame(engine: Engine,
+                                       radius: number = 0.5,
+                                       height: number = 2,): ModelMesh {
+    const mesh = new ModelMesh(engine);
+
+    const vertexCount = 40;
+    const shift = new Vector3();
+
+    const positions: Vector3[] = new Array(vertexCount * 4);
+    const indices = new Uint16Array(vertexCount * 8);
+
+    // Y-Top
+    shift.y = height / 2.0;
+    createCircleWireFrame(radius, 0, vertexCount, 1, shift, positions, indices);
+
+    // Y-Bottom
+    shift.y = -height / 2.0;
+    createCircleWireFrame(radius, vertexCount, vertexCount, 1, shift, positions, indices);
+
+    // X-Elliptic
+    createEllipticWireFrame(radius, height, vertexCount * 2, vertexCount, 2, positions, indices);
+
+    // Z-Elliptic
+    createEllipticWireFrame(radius, height, vertexCount * 3, vertexCount, 0, positions, indices);
 
     mesh.setPositions(positions);
     mesh.setIndices(indices);
