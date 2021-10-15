@@ -1,5 +1,5 @@
 import React from "react";
-import { createOasis } from "./oasis";
+import { createOasis } from "./oasis/mapRaycast";
 
 function App() {
 	React.useEffect(() => {

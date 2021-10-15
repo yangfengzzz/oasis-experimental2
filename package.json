@@ -10,7 +10,8 @@
 		"react": "^17.0.0",
 		"react-dom": "^17.0.0",
 		"oasis-engine": "^0.5",
-		"@oasis-engine/controls": "^0.5"
+		"@oasis-engine/controls": "^0.5",
+		"dat.gui": "^0.7.7"
 	},
 	"devDependencies": {
 		"@types/react": "^17.0.0",
